@@ -1,0 +1,20 @@
+{
+  "name": "signo-bnb-yield-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Compares lending rates on BNB Chain for the assets a wallet holds there, with live CoinMarketCap prices, a stablecoin peg check, and multi-condition watches. Read only.",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "report": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}

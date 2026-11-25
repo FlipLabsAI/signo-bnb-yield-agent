@@ -1,0 +1,7 @@
+[
+  { "type": "pegWithin", "token": "USDT", "maxGapPct": 0.5 },
+  { "type": "rateAbove", "token": "USDT", "minApyPct": 3 },
+  { "type": "rateGapAbove", "token": "USDT", "minGapPct": 1 },
+  { "type": "priceMoveWithin", "symbol": "BNB", "maxAbsPct": 5 },
+  { "type": "holdingAbove", "token": "USDT", "minUsd": 100 }
+]
