@@ -4,7 +4,7 @@ A multi-condition yield agent for BNB Chain. It reads the lending rates on BNB C
 
 Example: "Tell me when USDT pays 3% or more on BNB Chain, the best lender pays at least 1% more than the next one, USDT is within 0.5% of $1, BNB moved less than 5% today, and I hold at least $100 of USDT."
 
-This repository is a standalone, runnable version of the agent. In [Signo](https://app.signo.fi) it runs as the **BNB Chain Yield Agent**: the Signo Yield Agent with its scope set to **BNB Mode** (early access). It uses the same BNB Chain lending markets and the same stablecoin peg check. The Signo app reads its prices from CoinMarketCap today; this repository also reads the Atlas price feeds on BNB Chain. The Signo app code is private. This repository holds the BNB Chain parts under the MIT licence.
+This repository is a standalone, runnable version of the agent. In [Signo](https://app.signo.fi) it runs as the **BNB Chain Yield Agent**: the Signo Yield Agent with its scope set to **BNB Mode** (early access). It uses the same BNB Chain lending markets and the same stablecoin peg check. In Signo, the BNB Mode market check reads signed prices from the Atlas price API, with CoinMarketCap for 24-hour moves and as a cross-check. This repository reads the Atlas price feeds on BNB Chain directly. In Signo, an agent can also act on BNB Chain through the Signo Shield, with Atlas built in (see [Acting on BNB Chain](#acting-on-bnb-chain-signo-shield-and-atlas)). The Signo app code is private. This repository holds the BNB Chain parts under the MIT licence.
 
 ## What it reads
 
@@ -93,9 +93,27 @@ Rates only. This agent reads and tells. It does not move funds.
 - **Timeouts and a cache.** CoinMarketCap calls time out after 6 seconds and are cached for 5 minutes.
 - **Two price sources.** Atlas and CoinMarketCap must agree within 1% on BNB, ETH, and BTC, or the agent does not use the price. A stale Atlas feed (older than five minutes) is left out.
 
+## Acting on BNB Chain: Signo Shield and Atlas
+
+This CLI reads and tells. In Signo, an Execute agent can also act on BNB Chain, but only inside a permission that the owner signs on chain. The [Signo Shield](https://github.com/FlipLabsAI/signo-shield) contracts check that permission, and its condition, on chain at the moment the agent acts. The Shield code is open source (MIT).
+
+- **Live on BNB Chain mainnet since 25 November 2026.** Execute on BNB Chain is open to the Signo team for now. An agent can supply to Aave V3 or repay Aave from the wallet. Conditions can read the BNB Chain Aave health factor and the prices of BNB, BTC, ETH, USDT, USDC, FDUSD, and CAKE.
+- **First mainnet firing:** when BNB was above $100, the Signo agent supplied 1 USDT to Aave on BNB Chain ([transaction](https://bscscan.com/tx/0xc0cdf431a6257f31db3c37d7887afd34d7b579eb3dbbc70ed752aa2ac3dcda66)).
+
+### Atlas status
+
+Atlas is built into the Shield on BNB Chain. The Shield registry lists Atlas BNB/USD, BTC/USD, and ETH/USD as on-chain reads ([BNB/USD listing](https://bscscan.com/tx/0x0c8a50a0aa5fffd883058789695f497c1ba4b3d70a8699a0e13668e6bf1bde5f)).
+
+- **Mainnet: waiting for Atlas permission to activate it.** Atlas's mainnet feeds answer a contract only when the contract is on Atlas's allowlist, and Atlas allowlists on testnet only for now. We have asked Atlas to add the Shield's evaluator, [`0xc428a88A92Ecec99414152Ad2A5fd4244b222B15`](https://bscscan.com/address/0xc428a88A92Ecec99414152Ad2A5fd4244b222B15). Until then, price conditions on mainnet read Chainlink. When Atlas adds the evaluator, Signo turns Atlas on with one switch. The contracts do not change.
+- **Testnet: live.** On BNB testnet, the Shield read the Atlas BNB/USD feed during a real firing:
+  - "When BNB is above $100, send 0.001 WBNB" fired ([transaction](https://testnet.bscscan.com/tx/0xe8f0fb862976f99df5dfdda18dec1f0d7d25ae288724a1e0f9dd9fe88f97a6d9)).
+  - "When BNB is above $1,000,000" was refused on chain, and no funds moved ([transaction](https://testnet.bscscan.com/tx/0x21bf85f8fbf8f5d234d22045a02e6cd629ddd04919db0b2bb30e8a784c5e7cee)).
+  - Addresses, script, and fork test: [DEMO-BNB-TESTNET-ATLAS.md](https://github.com/FlipLabsAI/signo-shield/blob/main/docs/DEMO-BNB-TESTNET-ATLAS.md).
+- **Off-chain reads use Atlas on mainnet today.** The allowlist applies only to contracts. This CLI reads the Atlas feeds from an account with `eth_call`, and the Signo app reads the Atlas price API.
+
 ## Not in this version
 
-- Moving funds on BNB Chain. In Signo, deposits and withdrawals run on other chains today. On BNB Chain the agent compares rates and tells you.
+- Moving funds. This CLI never signs. In Signo, agents act on BNB Chain through the Shield (see above).
 
 ## Tests
 
