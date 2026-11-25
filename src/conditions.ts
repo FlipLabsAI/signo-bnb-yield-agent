@@ -1,9 +1,10 @@
 // Multi-condition rules. The agent tells you only when ALL the conditions are
-// true at the same time. A condition with no data (no CoinMarketCap key, no
-// wallet) is not true: the agent never guesses.
+// true at the same time. A condition with no data (no price, no wallet), or
+// with a price the two sources disagree on, is not true: the agent never
+// guesses.
 
 import { marketsFor, type BnbMarket } from "./bnb-markets.js";
-import { pegGap, type MarketCheck } from "./market-check.js";
+import { pegGap, priceAgreed, PRICE_AGREEMENT, type MarketCheck, type MarketQuote } from "./market-check.js";
 import { priceSymbol } from "./tokens.js";
 import type { Holding } from "./wallet.js";
 
@@ -12,7 +13,7 @@ export type Condition =
   | { type: "rateAbove"; token: string; minApyPct: number }
   /** The best lender pays at least this much more than the next best. */
   | { type: "rateGapAbove"; token: string; minGapPct: number }
-  /** The stablecoin is within this distance of $1 on CoinMarketCap. */
+  /** The stablecoin is within this distance of $1. */
   | { type: "pegWithin"; token: string; maxGapPct: number }
   /** The coin moved less than this in 24 hours on CoinMarketCap. */
   | { type: "priceMoveWithin"; symbol: string; maxAbsPct: number }
@@ -34,6 +35,14 @@ const dollars = (value: number) => `$${value.toLocaleString("en-US", { maximumFr
 const quote = (check: MarketCheck | undefined, symbol: string) =>
   check?.quotes.find((row) => row.symbol.toUpperCase() === priceSymbol(symbol.toUpperCase()));
 
+/** Why a price cannot be used, or null when it can. */
+const unusable = (row: MarketQuote | undefined, token: string): string | null =>
+  !row
+    ? `No market price for ${token}`
+    : !priceAgreed(row)
+      ? `Atlas and CoinMarketCap differ by more than ${pct(PRICE_AGREEMENT * 100)} on ${row.symbol}`
+      : null;
+
 export function evaluate(condition: Condition, inputs: Inputs): Result {
   const done = (met: boolean, line: string): Result => ({ condition, met, line });
   switch (condition.type) {
@@ -52,10 +61,11 @@ export function evaluate(condition: Condition, inputs: Inputs): Result {
     }
     case "pegWithin": {
       const row = quote(inputs.check, condition.token);
-      if (!row) return done(false, `No CoinMarketCap price for ${condition.token}, so the peg is not checked.`);
+      const why = unusable(row, condition.token);
+      if (why || !row) return done(false, `${why}, so the peg is not checked.`);
       const gap = pegGap(row) * 100;
       return done(gap <= condition.maxGapPct,
-        `${condition.token} is $${row.priceUsd.toFixed(4)} on CoinMarketCap, ${pct(gap)} from $1 (allowed ${pct(condition.maxGapPct)}).`);
+        `${condition.token} is $${row.priceUsd.toFixed(4)} on ${row.source}, ${pct(gap)} from $1 (allowed ${pct(condition.maxGapPct)}).`);
     }
     case "priceMoveWithin": {
       const row = quote(inputs.check, condition.symbol);
@@ -66,7 +76,8 @@ export function evaluate(condition: Condition, inputs: Inputs): Result {
     case "holdingAbove": {
       if (!inputs.holdings) return done(false, `No wallet was given, so the ${condition.token} balance is not checked.`);
       const row = quote(inputs.check, condition.token);
-      if (!row) return done(false, `No CoinMarketCap price for ${condition.token}, so its dollar value is not known.`);
+      const why = unusable(row, condition.token);
+      if (why || !row) return done(false, `${why}, so its dollar value is not known.`);
       const amount = inputs.holdings.find((holding) => holding.symbol.toUpperCase() === condition.token.toUpperCase())?.amount ?? 0;
       const value = amount * row.priceUsd;
       return done(value >= condition.minUsd,

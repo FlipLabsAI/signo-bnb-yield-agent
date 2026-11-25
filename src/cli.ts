@@ -2,6 +2,7 @@
 //                                 [--min-tvl 1000000] [--json]
 
 import { readFileSync } from "node:fs";
+import { atlasPrices } from "./atlas.js";
 import { fetchBnbMarkets } from "./bnb-markets.js";
 import { cmcQuotes } from "./coinmarketcap.js";
 import { parseConditions } from "./conditions.js";
@@ -29,9 +30,10 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const conditions = parseConditions(JSON.parse(readFileSync(args.conditions, "utf8")));
   const at = Date.now();
-  const [markets, quotes, holdings] = await Promise.all([
+  const [markets, quotes, atlas, holdings] = await Promise.all([
     fetchBnbMarkets(args.minTvlUsd),
     cmcQuotes(marketCheckSlugs()),
+    atlasPrices(),
     args.wallet ? readHoldings(args.wallet) : Promise.resolve(undefined),
   ]);
   if (args.wallet && holdings === null) console.error("Could not read the wallet from the BNB Chain RPC.");
@@ -40,7 +42,7 @@ async function main(): Promise<void> {
     at,
     minTvlUsd: args.minTvlUsd,
     markets: markets ?? [],
-    check: marketCheckFrom(quotes, at),
+    check: marketCheckFrom(quotes, at, atlas),
     holdings: holdings ?? undefined,
     conditions,
   });

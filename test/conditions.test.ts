@@ -44,6 +44,21 @@ describe("conditions", () => {
     expect(evaluate({ type: "holdingAbove", token: "BTCB", minUsd: 1_000 }, inputs).met).toBe(false);
   });
 
+  it("values holdings at the Atlas price, and not at all when the sources disagree", () => {
+    const withAtlas = (bnbUsd: number): Inputs => ({
+      ...inputs,
+      holdings: [{ symbol: "BNB", amount: 1 }],
+      check: marketCheckFrom([{ slug: "bnb", priceUsd: 600, change24hPct: -2.4 }], 0, [{ symbol: "BNB", priceUsd: bnbUsd }]),
+    });
+    const agreed = evaluate({ type: "holdingAbove", token: "BNB", minUsd: 603 }, withAtlas(604));
+    expect(agreed).toMatchObject({ met: true, line: "The wallet holds $604 of BNB (wanted $603 or more)." });
+    const disputed = evaluate({ type: "holdingAbove", token: "BNB", minUsd: 0 }, withAtlas(650));
+    expect(disputed).toMatchObject({
+      met: false,
+      line: "Atlas and CoinMarketCap differ by more than 1.00% on BNB, so its dollar value is not known.",
+    });
+  });
+
   it("treats missing data as not true", () => {
     const bare: Inputs = { markets: inputs.markets, check: undefined, holdings: undefined };
     expect(evaluate({ type: "pegWithin", token: "USDT", maxGapPct: 5 }, bare).met).toBe(false);

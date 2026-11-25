@@ -22,7 +22,8 @@ export function fromUnits(hex: string, decimals: number): number {
   return Number(raw / scale) + Number(raw % scale) / Number(scale);
 }
 
-async function rpc(url: string, method: string, params: unknown[], fetchImpl: typeof fetch): Promise<string> {
+/** One JSON-RPC call. Throws on an error or a missing result. */
+export async function rpc(url: string, method: string, params: unknown[], fetchImpl: typeof fetch): Promise<string> {
   const response = await fetchImpl(url, {
     method: "POST",
     headers: { "content-type": "application/json" },

@@ -1,4 +1,5 @@
-// The report: lending rates on BNB Chain, the CoinMarketCap market check, the
+// The report: lending rates on BNB Chain, the market check (Atlas and
+// CoinMarketCap), the
 // wallet, and each condition with its answer. Pure: no reads here.
 
 import { marketsFor, type BnbMarket } from "./bnb-markets.js";
@@ -44,7 +45,7 @@ export function buildReport(inputs: ReportInputs): Report {
     `Lending rates on BNB Chain (DefiLlama; markets with ${millions(inputs.minTvlUsd)} or more in deposits):`,
     ...(rateLines.length ? rateLines : ["- No markets were read."]),
     "",
-    ...(inputs.check ? marketCheckLines(inputs.check) : ["Market check: not read (set CMC_PRO_API_KEY)."]),
+    ...(inputs.check ? marketCheckLines(inputs.check) : ["Market check: not read. The Atlas price feeds did not answer, and CoinMarketCap needs CMC_PRO_API_KEY."]),
     "",
     inputs.holdings === undefined
       ? "Wallet: none given."

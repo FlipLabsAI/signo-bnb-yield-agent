@@ -18,6 +18,6 @@ export const tokenByAddress = (address: string | null | undefined): BnbToken | u
 export const tokenBySymbol = (symbol: string): BnbToken | undefined =>
   BNB_TOKENS.find((token) => token.symbol.toUpperCase() === symbol.toUpperCase());
 
-/** The CoinMarketCap symbol whose price a token follows (BTCB follows BTC). */
+/** The symbol whose price a token follows (BTCB follows BTC, WBNB follows BNB). */
 export const priceSymbol = (symbol: string): string =>
   ({ BTCB: "BTC", WBNB: "BNB" } as Record<string, string>)[symbol] ?? symbol;

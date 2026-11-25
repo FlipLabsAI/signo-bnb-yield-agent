@@ -53,7 +53,7 @@ describe("report", () => {
     });
     expect(report.allMet).toBe(false);
     expect(report.lines).toContain("- USDT: Venus 3.64% ($36.5M), Aave V3 2.24% ($19.4M)");
-    expect(report.lines).toContain("Market check: not read (set CMC_PRO_API_KEY).");
+    expect(report.lines).toContain("Market check: not read. The Atlas price feeds did not answer, and CoinMarketCap needs CMC_PRO_API_KEY.");
     expect(report.lines).toContain("[x] Best USDT rate: 3.64% on Venus (wanted 3.00% or more).");
     expect(report.lines).toContain("1 of 2 conditions are true. The agent stays quiet.");
   });
