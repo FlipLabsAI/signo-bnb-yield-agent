@@ -6,6 +6,8 @@ Example: "Tell me when USDT pays 3% or more on BNB Chain, the best lender pays a
 
 This repository is a standalone, runnable version of the agent. In [Signo](https://app.signo.fi) it runs as the **BNB Chain Yield Agent**: the Signo Yield Agent with its scope set to **BNB Mode** (early access). It uses the same BNB Chain lending markets and the same stablecoin peg check. In Signo, the BNB Mode market check reads signed prices from the Atlas price API, with CoinMarketCap for 24-hour moves and as a cross-check. This repository reads the Atlas price feeds on BNB Chain directly. In Signo, an agent can also act on BNB Chain through the Signo Shield, with Atlas built in (see [Acting on BNB Chain](#acting-on-bnb-chain-signo-shield-and-atlas)). The Signo app code is private. This repository holds the BNB Chain parts under the MIT licence.
 
+One-page overview (the problem, the data sources, the BNB Chain contracts, and next steps): [docs/one-pager.pdf](docs/one-pager.pdf).
+
 ## What it reads
 
 | Source | What | Why |
